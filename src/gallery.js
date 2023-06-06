@@ -29,6 +29,7 @@ const handleSearchFormSubmit = event => {
      
       if (data.total === 0) {
         createMarkup.innerHTML = '';
+        loadMoreBtn.classList.add('is-hidden');
         setTimeout(() => {
           Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
         }, 400);
@@ -77,6 +78,7 @@ const handleLoadMoreButtonClick = event => {
       console.log(error);
     });
 };
+
 
 searchFormEl.addEventListener('submit', handleSearchFormSubmit);
 loadMoreBtn.addEventListener('click', handleLoadMoreButtonClick);
