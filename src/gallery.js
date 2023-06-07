@@ -11,7 +11,9 @@ const lightbox = new SimpleLightbox('.gallery a');
 
 const pixabayAPI = new PixabayAPI();
 
-const handleSearchFormSubmit = event => {
+
+// ф-я запиту на сервер по ключовому слову
+const handleSearchFormSubmit = async event => {
   event.preventDefault();
   
   const searchQuery = event.target.elements.searchQuery.value.trim();
@@ -19,66 +21,69 @@ const handleSearchFormSubmit = event => {
   if (searchQuery === '') {
     return;
   }
-  
   pixabayAPI.page = 1;
   pixabayAPI.query = searchQuery;
-  
-  pixabayAPI.fetchPhoto()
-    .then(({ data }) => {
-      searchFormEl.reset();
-     
-      if (data.total === 0) {
-        createMarkup.innerHTML = '';
-        loadMoreBtn.classList.add('is-hidden');
-        setTimeout(() => {
-          Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
-        }, 400);
-        return;
-      }
-      
-      setTimeout(() => {
-        Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images`);
-      }, 400);
+    
 
-      if (data.total <= 40) {
-        loadMoreBtn.classList.add('is-hidden');
-        createMarkup.innerHTML = createGalleryMarkup(data.hits);
-        setTimeout(() => {
-          Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.");
-        }, 4000);
-        return;
-      }
-      
-      createMarkup.innerHTML = createGalleryMarkup(data.hits);
-      loadMoreBtn.classList.remove('is-hidden');
-      lightbox.refresh();
-    })
-    .catch(() => {
+  try {
+    const { data } = await pixabayAPI.fetchPhoto()
+    console.log(data);
+  
+    searchFormEl.reset();
+     
+    if (data.total === 0) {
+      createMarkup.innerHTML = '';
+      loadMoreBtn.classList.add('is-hidden');
       setTimeout(() => {
         Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
-      }, 400);
-    });
-};
+      }, 500);
+      return;
+    }
+    setTimeout(() => {
+      Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images`);
+    }, 500);
+      
+    if (data.total <= 40) {
+      loadMoreBtn.classList.add('is-hidden');
+      createMarkup.innerHTML = createGalleryMarkup(data.hits);
+      setTimeout(() => {
+        Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.");
+      }, 4000);
+      return;
+    }
+      
+    createMarkup.innerHTML = createGalleryMarkup(data.hits);
+    loadMoreBtn.classList.remove('is-hidden');
+    lightbox.refresh();
+  }
+  catch (error) {
+    setTimeout(() => {
+      Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
+    }, 400);
+  }
+}
 
-const handleLoadMoreButtonClick = event => {
+//ф-я додавання нових зображень 
+const handleLoadMoreButtonClick = async event => {
   pixabayAPI.page += 1;
 
-  pixabayAPI.fetchPhoto()
-    .then(({ data }) => {
-      createMarkup.insertAdjacentHTML('beforeend', createGalleryMarkup(data.hits));
+  try {
+    const { data } = await pixabayAPI.fetchPhoto();
+    console.log(data);
 
-      if (data.total === data.totalHits) {
-        loadMoreBtn.classList.add('is-hidden');
-        setTimeout(() => {
-          Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.");
-        }, 1500);
-      }
-    })
-    .catch(error => {
-      console.log(error);
-    });
-};
+    createMarkup.insertAdjacentHTML('beforeend', createGalleryMarkup(data.hits));
 
-
+    if (data.total === data.totalHits) {
+      loadMoreBtn.classList.add('is-hidden');
+      lightbox.refresh();
+      setTimeout(() => {
+        Notiflix.Notify.failure("We're sorry, but you've reached the end of search results.");
+      }, 1500);
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
+  
 searchFormEl.addEventListener('submit', handleSearchFormSubmit);
 loadMoreBtn.addEventListener('click', handleLoadMoreButtonClick);

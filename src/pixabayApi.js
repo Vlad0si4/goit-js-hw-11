@@ -4,7 +4,6 @@ export class PixabayAPI {
   static BASE_URL = "https://pixabay.com/api/";
   static API_KEY = "37048834-594b42b2db4c8472c20f59a64"
 
-
 constructor() {
   this.page = null;
   this.query = null;
@@ -20,9 +19,7 @@ constructor() {
       page: this.page,
       per_page: 40
     });
-
     return axios.get(`${PixabayAPI.BASE_URL}?${searchParams}`);
-    
-}
+    }
 }
 
